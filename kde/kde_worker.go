@@ -13,6 +13,7 @@ import (
 
 const dayFile string = "day.jpg"
 const nightFile string = "night.jpg"
+const logLiteral string = "Setting wallpaper to %s %s"
 
 var LOGGER = logger.GetInstance().Logger
 
@@ -27,7 +28,7 @@ func setWallpaperManjaroKDE(dirPtr string, sunset bool) {
 	LOGGER = logger.GetInstance().Logger
 
 	wallpaperPath = dirPtr
-	if sunset {
+	if !sunset {
 		wallpaperPath += dayFile
 	} else {
 		wallpaperPath += nightFile
@@ -89,15 +90,22 @@ func WallpaperChanger(latPtr float64, longPtr float64, wallpaperDir string) {
 	closerTime = timeHelper.ClosestToNow(sunrise, sunset)
 
 	if closerTime == sunset {
-		commandHelper.SetExecutingWallpaperChangeToSunsetAndSunrise(twentyFourSunset)
+		commandHelper.SetExecutingWallpaperChangeToSunsetAndSunrise(sunset)
 	} else {
-		commandHelper.SetExecutingWallpaperChangeToSunsetAndSunrise(twentyFourSunrise)
+		commandHelper.SetExecutingWallpaperChangeToSunsetAndSunrise(sunrise)
 	}
-	if currentTime.Before(sunset) && currentTime.After(sunrise) {
-		setWallpaperManjaroKDE(wallpaperDir, false)
-		LOGGER.Printf("Setting wallpaper to %s %s", dayFile, time.Now().String())
-	} else {
+	fmt.Println(sunset, sunrise)
+	if currentTime.Before(sunset) {
+		if currentTime.After(sunrise) {
+			fmt.Println("nice")
+			setWallpaperManjaroKDE(wallpaperDir, false)
+			LOGGER.Printf(logLiteral, dayFile, time.Now().String())
+		} else {
+			setWallpaperManjaroKDE(wallpaperDir, true)
+			LOGGER.Printf(logLiteral, dayFile, time.Now().String())
+		}
+	} else if currentTime.Before(sunrise) {
 		setWallpaperManjaroKDE(wallpaperDir, true)
-		LOGGER.Printf("Setting wallpaper to %s %s", nightFile, time.Now().String())
+		LOGGER.Printf(logLiteral, nightFile, time.Now().String())
 	}
 }

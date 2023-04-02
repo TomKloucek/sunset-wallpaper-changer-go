@@ -50,43 +50,30 @@ func ParseTimeTwentyFour(timeStr string) (string, error) {
 }
 
 func ClosestToNow(sunrise time.Time, sunset time.Time) time.Time {
-	var (
-		now time.Time
-		res time.Time
-	)
+	var now time.Time
 
 	now = time.Now()
-
 	if now.Before(sunset) && now.After(sunrise) {
-		res = time.Date(now.Year(), now.Month(), now.Day(), sunset.Hour(), sunset.Minute(), sunset.Second(), 0, now.Location())
-		return res
+		return sunset
 	} else {
-		res = time.Date(now.Year(), now.Month(), now.Day(), sunrise.Hour(), sunrise.Minute(), sunrise.Second(), 0, now.Location())
-		res = res.AddDate(0, 0, 1)
-		return res
+		return sunrise.AddDate(0, 0, 1)
 	}
 }
 
 func ParseStringToTime(layout string, timeStr string) time.Time {
 	var (
-		t       time.Time
-		now     time.Time
-		nowTime time.Time
-		err     error
+		t   time.Time
+		now time.Time
+		err error
 	)
 
 	t, err = time.Parse(layout, timeStr)
 	now = time.Now()
-	nowTime = time.Date(0000, 01, 01, now.Hour(), now.Minute(), now.Second(), now.Nanosecond(), now.Location())
+	//nowTime = time.Date(0000, 01, 00, now.Hour(), now.Minute(), now.Second(), now.Nanosecond(), now.Location())
 	if err != nil {
 		LOGGER.Printf("parsing time was not successful - %s", err.Error())
 		panic(err)
 	}
-	if nowTime.Before(t) {
-		t = t.AddDate(now.Year(), int(now.Month())-1, now.Day())
-	} else {
-		t = t.AddDate(now.Year(), int(now.Month())-1, now.Day())
-		t = t.AddDate(0, 0, 1)
-	}
+	t = t.AddDate(now.Year(), int(now.Month())-1, now.Day()-1)
 	return t
 }

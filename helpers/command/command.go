@@ -6,22 +6,30 @@ import (
 	"os/exec"
 	"strings"
 	"sunset-wallpaper-changer-go/logger"
+	"time"
 )
 
 var LOGGER = logger.GetInstance().Logger
 
-func SetExecutingWallpaperChangeToSunsetAndSunrise(parsedTime string) bool {
+func SetExecutingWallpaperChangeToSunsetAndSunrise(timeVal time.Time) bool {
 	// Set the time to execute the command (in 24-hour format)
 	// Use the "at" command to schedule the command for execution
-	atCmd := fmt.Sprintf("at %s", parsedTime)
+	parsedTime, err := time.Parse("2006-01-02 15:04:05 -0700 MST", timeVal.String())
+	if err != nil {
+		LOGGER.Println("Error parsing time")
+		return false
+	}
+	atCmd := fmt.Sprintf("at %s", parsedTime.Format("15:04"))
 	at := exec.Command("sh", "-c", atCmd)
 
 	// Run the "at" command
 	if err := at.Run(); err != nil {
 		LOGGER.Printf("Error: %s \n", err)
+		fmt.Println(at.String())
 		return false
 	}
-	fmt.Println("Your wallpaper will be changed at", parsedTime)
+
+	fmt.Printf("Your wallpaper will be changed at %s\n", timeVal.String())
 	return true
 }
 
@@ -56,13 +64,14 @@ func RemoveAllScheduledAtCommands() {
 
 	res, _ = cut.Output()
 	split := strings.Split(strings.Trim(string(res), "\n"), "\n")
-
-	for _, val := range split {
-		removeAt := exec.Command("atrm", val)
-		err = removeAt.Run()
-		if err != nil {
-			LOGGER.Printf("executing command atrm was not successful - %s", err.Error())
-			return
+	if len(res) != 0 {
+		for _, val := range split {
+			removeAt := exec.Command("atrm", val)
+			err = removeAt.Run()
+			if err != nil {
+				LOGGER.Printf("executing command atrm was not successful - %s", err.Error())
+				return
+			}
 		}
 	}
 }
